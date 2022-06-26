@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -169,14 +171,14 @@ class ReleaseNotes {
   ReleaseNotes(this.version, this.date, this.notes);
 }
 
-class PlatformVariant {
+class PlatformProduct {
   final Platform platform;
   final bool isDemoAppDeployed;
   final bool isProductionAppDeployed;
 
   final List<ReleaseNotes> releasesNotes;
 
-  PlatformVariant(this.platform, this.isDemoAppDeployed,
+  PlatformProduct(this.platform, this.isDemoAppDeployed,
       this.isProductionAppDeployed, this.releasesNotes);
 }
 
@@ -186,7 +188,7 @@ class Product {
   final bool isPurchased;
   final String label;
   final String caption;
-  final List<PlatformVariant> platformVariants;
+  final List<PlatformProduct> platformVariants;
   Product(this.isPurchased, this.label, this.caption, this.platformVariants,
       this.logoUrl);
 }
@@ -198,7 +200,10 @@ class ProductsPage extends StatefulWidget {
   State<ProductsPage> createState() => _ProductsPageState();
 }
 
+enum Environment { production, demo }
+
 class _ProductsPageState extends State<ProductsPage> {
+  Environment environment = Environment.demo;
   List<Product> products = [
     Product(true, "sdfsf", "sdfsd", [], "..."),
     Product(true, "sdfsf", "sdfsd", [], "...")
@@ -206,31 +211,47 @@ class _ProductsPageState extends State<ProductsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.extent(
-      maxCrossAxisExtent: 250,
-      children: List<Card>.generate(
-        products.length,
-        (index) {
-          return Card(
-            child: ExpansionTile(
-              leading: CircleAvatar(
-                  backgroundImage: NetworkImage(products[index].logoUrl)),
-              title: Text(products[index].label),
-              subtitle: Text(products[index].caption),
-              children: List<ListTile>.generate(
-                products[index].platformVariants.length,
-                (index) => ListTile(
-                  title: Text("..."),
-                  subtitle: Text("..."),
-                  leading: Text("IconNotText"),
-                  trailing: Text("IconNotText"),
+    return Column(
+      children: <Widget>[
+        TextButton.icon(
+          onPressed: () {
+            setState(() {
+              environment = environment == Environment.demo
+                  ? Environment.production
+                  : Environment.demo;
+            });
+          },
+          icon: const Icon(Icons.swap_horiz),
+          label: Text(
+              "Switch to ${environment == Environment.demo ? "production" : "dev"} environment"), // TODO: Pad To To Right
+        ),
+        GridView.extent(
+          maxCrossAxisExtent: 250,
+          children: List<Card>.generate(
+            products.length,
+            (index) {
+              return Card(
+                child: ExpansionTile(
+                  leading: CircleAvatar(
+                      backgroundImage: NetworkImage(products[index].logoUrl)),
+                  title: Text(products[index].label),
+                  subtitle: Text(products[index].caption),
+                  children: List<ListTile>.generate(
+                    products[index].platformVariants.length,
+                    (index) => ListTile(
+                      title: Text("..."),
+                      subtitle: Text("..."),
+                      leading: Text("IconNotText"),
+                      trailing: Text("IconNotText"),
+                    ),
+                  ),
+                  maintainState: true,
                 ),
-              ),
-              maintainState: true,
-            ),
-          );
-        },
-      ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
