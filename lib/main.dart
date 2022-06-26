@@ -1,6 +1,8 @@
+import 'dart:developer' as developer;
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -229,23 +231,87 @@ class _ProductsPageState extends State<ProductsPage> {
           maxCrossAxisExtent: 250,
           children: List<Card>.generate(
             products.length,
-            (index) {
+            (productIndex) {
               return Card(
                 child: ExpansionTile(
+                  maintainState: true,
                   leading: CircleAvatar(
-                      backgroundImage: NetworkImage(products[index].logoUrl)),
-                  title: Text(products[index].label),
-                  subtitle: Text(products[index].caption),
+                      backgroundImage:
+                          NetworkImage(products[productIndex].logoUrl)),
+                  title: Text(products[productIndex].label),
+                  subtitle: Text(products[productIndex].caption),
                   children: List<ListTile>.generate(
-                    products[index].platformVariants.length,
-                    (index) => ListTile(
-                      title: Text("..."),
+                    products[productIndex].platformVariants.length,
+                    (platformProductIndex) => ListTile(
+                      leading: Icon(
+                        (() {
+                          switch (products[productIndex]
+                              .platformVariants[platformProductIndex]
+                              .platform) {
+                            case Platform.web:
+                              return Icons.web;
+                            case Platform.android:
+                              return Icons.android;
+                            case Platform.iOS:
+                              return Icons.apple;
+                            default:
+                          }
+                        })(),
+                      ),
+                      title: Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        children: [
+                          Expanded(
+                            child: Text("..."),
+                          ),
+                          Builder(
+                            builder: (BuildContext context) {
+                              if (environment == Environment.production) {
+                                products[productIndex]
+                                        .platformVariants[platformProductIndex]
+                                        .isProductionAppDeployed
+                                    ? const Icon(
+                                        Icons.stop_rounded,
+                                        color: Colors.red,
+                                      )
+                                    : IconButton(
+                                        onPressed: () {
+                                          try {
+                                            FirebaseFunctions.instance
+                                                .httpsCallable("name")
+                                                .call();
+                                          } on FirebaseFunctionsException catch (e) {
+                                            developer.log(
+                                              e.message!,
+                                              stackTrace: e.stackTrace,
+                                            ); // TODO: Reaffine
+                                          }
+                                        },
+                                        icon: const Icon(
+                                          Icons.play_arrow_rounded,
+                                          color: Colors.green,
+                                        ),
+                                      );
+                              } else {
+                                products[productIndex]
+                                        .platformVariants[platformProductIndex]
+                                        .isDemoAppDeployed
+                                    ? const Icon(
+                                        Icons.stop_rounded,
+                                        color: Colors.red,
+                                      )
+                                    : const Icon(
+                                        Icons.play_arrow_rounded,
+                                        color: Colors.green,
+                                      );
+                              }
+                            },
+                          ),
+                        ],
+                      ),
                       subtitle: Text("..."),
-                      leading: Text("IconNotText"),
-                      trailing: Text("IconNotText"),
                     ),
                   ),
-                  maintainState: true,
                 ),
               );
             },
