@@ -267,7 +267,7 @@ class _ProductsPageState extends State<ProductsPage> {
                           Builder(
                             builder: (BuildContext context) {
                               if (environment == Environment.production) {
-                                products[productIndex]
+                                return products[productIndex]
                                         .platformVariants[platformProductIndex]
                                         .isProductionAppDeployed
                                     ? const Icon(
@@ -293,7 +293,7 @@ class _ProductsPageState extends State<ProductsPage> {
                                         ),
                                       );
                               } else {
-                                products[productIndex]
+                                return products[productIndex]
                                         .platformVariants[platformProductIndex]
                                         .isDemoAppDeployed
                                     ? const Icon(
