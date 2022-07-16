@@ -9,6 +9,7 @@ import * as functionsV2 from "firebase-functions/v2";
 import { ProjectsClient } from "@google-cloud/resource-manager";
 import { ResourceSettingsServiceClient } from "@google-cloud/resource-settings";
 import { firebase } from "@googleapis/firebase";
+import { androidpublisher } from "@googleapis/androidpublisher";
 
 const GITHUB_APP_ID = '';
 const GITHUB_APP_PRIVATE_KEY = '';
@@ -19,6 +20,7 @@ const resourceSettingsServiceClient = new ResourceSettingsServiceClient();
 const firebaseClient = firebase("v1beta1");
 const db = firestore();
 const pm = projectManagement();
+const androidPublisher = androidpublisher("v3");
 const expressApp = express();
 const octokitApp = new App({
   appId: GITHUB_APP_ID,
@@ -38,6 +40,8 @@ octokitApp.webhooks.on("issues.opened", ({ octokit, payload }) => {
   // ...  
 });
 
+// *: Apps Admin Would Have An Add App Button That Installs App On His Specified Repo And Returnes Tokens To Us
+
 expressApp.use(createNodeMiddleware(octokitApp));
 
 export const octokitAppFunction = functions.https.onRequest(expressApp);
@@ -56,15 +60,17 @@ export const createDeployment = functions.https.onCall(async (data, context) => 
 
 ///////////////////////
 export const v2FnCallableHttp = functionsV2.https.onCall({
-  cors: true
+  cors: true,
+  secrets: ["SECRET1", "SECRETN"]
 }, request => {
   // Throw Errors
   if (!request.auth) {
     throw new HttpsError("failed-precondition", "....");
     
   }
-  // Access Env Vars
+  // Access Environment Variables / Secrets
   const PLANET = process.env.PLANET;
+  const SECRET1 = process.env.SECRET1;
 })
 
 export const v2FnRequestHttp = functionsV2.https.onRequest({

@@ -44,6 +44,12 @@ dependencies:
   firebase_performance: ^0.8.0+14
   firebase_crashlytics: ^2.8.2
   flutterfire_ui: ^0.4.2
+  file_selector: ^0.8.4+3
+  uuid: ^3.0.6
+  flutter_dropzone: ^3.0.5
+  google_sign_in: ^5.4.0
+  cloud_firestore_odm: ^1.0.0-dev.21
+  json_annotation: ^4.6.0
 
 dev_dependencies:
   flutter_test:
@@ -55,6 +61,9 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
+  build_runner: ^2.2.0
+  cloud_firestore_odm_generator: ^1.0.0-dev.21
+  json_serializable: ^6.3.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
