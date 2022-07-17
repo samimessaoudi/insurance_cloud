@@ -16,7 +16,7 @@ import 'package:uuid/uuid.dart';
 
 import 'constants.dart';
 import 'enums/environment.dart';
-import 'enums/platform.dart';
+import 'enums/product_platform.dart';
 import 'firebase_options.dart';
 import 'models/product.dart';
 import 'models/request.dart';

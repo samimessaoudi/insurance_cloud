@@ -26,6 +26,7 @@
     "octokit": "^1.8.1"
   },
   "devDependencies": {
+    "@octokit/graphql-schema": "^10.74.2",
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",
     "eslint": "^8.9.0",
@@ -34,5 +35,10 @@
     "firebase-functions-test": "^0.2.0",
     "typescript": "^4.5.4"
   },
-  "private": true
+  "private": true,
+  "_comment": "TODO: Delete 'graphql'",
+  "graphql": {
+    "schema": "github-graphql-api-schema.graphql",
+    "documents": "src/**/*.ts"
+  }
 }

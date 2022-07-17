@@ -1,6 +1,8 @@
 // TODO: Watch For GitHub API client for GitHub Actions Release GA
 import * as cors from "cors"; // Remove On Using Firebase Functions V2
 import { App, createNodeMiddleware } from "octokit";
+import { GraphqlResponseError } from "@octokit/graphql"; // '@octokit/graphql' Is Not Directly Installed, So This Is A Mess, So Watch For 'GraphqlResponseError' Merge Into 'octokit' Then Delete This Import
+import { StatusState } from "@octokit/graphql-schema";
 import * as express from 'express';
 import { firestore, projectManagement } from "firebase-admin";
 import * as functions from "firebase-functions/v1";
@@ -46,18 +48,100 @@ expressApp.use(createNodeMiddleware(octokitApp));
 
 export const octokitAppFunction = functions.https.onRequest(expressApp);
 
-export const createDeployment = functions.https.onCall(async (data, context) => {
-  const githubAppInstallationId = 123; // Get From Firestore
-  const productOctokit = octokitApp.getInstallationOctokit(githubAppInstallationId);
-  // ...
-  // Create Firebase project
+type Product = {
+  githubAppInstallationId: number
+  productionBranch: string,
+  stagingBranch: string
+}
+
+export const addApp = functions.https.onCall(async (data: Product, context) => {
+  // TODO: Implement: Create Firebase Project
+
   try {
-    
+    // Get Product Template
+    const productTemplateFiles = await octokitApp.octokit.graphql(
+      `#graphql
+        query get_product_template_files {
+          repository {
+            // TODO: Get Files Path Their Base64 Encoded Contents
+          }
+        }
+      `,
+      {
+        
+      }
+    );
+    // Merge Product Template
+    const productOctokit = await octokitApp.getInstallationOctokit(data.githubAppInstallationId);
+    await productOctokit.graphql<{
+      commit: {
+        status: {
+          state: StatusState
+        }
+      }
+    }>(
+      `#graphql
+        mutation commit_action_files($additions: [FileAddition!]) {
+          createCommitOnBranch(
+            input: {
+              branch: {
+                repositoryNameWithOwner: "",
+                branchName: ""
+              },
+              expectedHeadOid: "$expectedHeadOid"
+              fileChanges: {
+                additions: $additions
+              }
+              message: {
+                headline: ""
+              }
+            }
+          ) {
+            commit {
+              status {
+                state
+              }
+            }
+          }
+        }
+      `,
+      {
+        "expectedHeadOid": "",
+        "additions": productTemplateFiles.map(file => (
+          {
+            path: file.path,
+            contents: file.contents
+          }
+        ))
+      }
+    );
+    await productOctokit.graphql(
+      `#graphql
+        mutation merge_action_files {
+          mergeBranch(
+            input: {
+
+            }
+          ) {
+            
+          }
+        }
+      `,
+      {
+
+      }
+    )
   } catch (error) {
-    
+    if (error instanceof GraphqlResponseError) {
+      // ...
+    }
+    // ...
   }
 });
 
+export const addRelease = functions.https.onCall(async (data, context) => {
+
+});
 ///////////////////////
 export const v2FnCallableHttp = functionsV2.https.onCall({
   cors: true,
