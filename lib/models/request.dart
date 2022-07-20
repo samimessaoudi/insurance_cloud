@@ -1,18 +1,14 @@
-import 'package:insurance_cloud/models/product.dart';
-import 'package:uuid/uuid.dart';
-
 import '../firestore_serializable.dart';
+import 'product.dart';
+import 'user.dart';
 
 part 'request.g.dart';
 
 @firestoreSerializable
 class Request {
-  String id = const Uuid().v1();
+  String? id; // Stored In Firestore // Same As Server's Issue id
+  Product product;
+  User user; // Stored In Firestore
   String? title;
-  String? description;
-  Product? product;
-
-  Request();
-
-  Request.fromFirestore({required this.id, this.title, this.description});
+  String body;
 }

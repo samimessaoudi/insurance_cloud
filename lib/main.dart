@@ -2,7 +2,10 @@ import 'dart:developer' as developer;
 import 'dart:html' as html;
 import 'dart:io';
 
+import 'package:cloud_firestore_odm/cloud_firestore_odm.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:markdown/markdown.dart' as md;
 import 'package:flutterfire_ui/auth.dart';
 import 'package:flutterfire_ui/i10n.dart';
 import 'package:path/path.dart' as p;
@@ -16,7 +19,7 @@ import 'package:uuid/uuid.dart';
 
 import 'constants.dart';
 import 'enums/environment.dart';
-import 'enums/product_platform.dart';
+import 'enums/platform.dart';
 import 'firebase_options.dart';
 import 'models/product.dart';
 import 'models/request.dart';
@@ -447,25 +450,109 @@ class RequestForm extends StatefulWidget {
 
 class _RequestFormState extends State<RequestForm> {
   final _formKey = GlobalKey<FormState>();
-  late Request request;
-  List<dynamic> attachments = [];
+  late Request _request;
+  String? _productsDropdownButtonSelectedItem = null;
+  final TextEditingController _requestBodyTextEditingController = TextEditingController();
+  final List<bool> _requestBodySelectedViews = [true, false];
+  final List<dynamic> _attachments = [];
 
   @override
   void initState() {
     super.initState();
 
-    request = widget.request;
+    _request = widget.request;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
+        // TODO: Initialize Form Fields Values On Existing Request
         child: Form(
           key: _formKey,
           child: Column(
             children: <Widget>[
-              TextFormField(),
+              FirestoreBuilder(
+                ref: productsRef.orderByDefaultName(), // TODO: Apply Projection To Select Only Product Name
+                builder: (BuildContext context, AsyncSnapshot<List<Product>> snapshot, _) {
+                  if (snapshot.hasError) {
+                    // TODO: Handle This
+                    return const Text('...'); // TODO: Not Like This
+                  }
+
+                  return DropdownButtonFormField<String>(
+                    //menuMaxHeight: ...,
+                    items: snapshot.hasData
+                        ? snapshot.data!
+                            .map((product) => DropdownMenuItem(
+                                  value: product.id,
+                                  child: Text(product.name),
+                                ))
+                            .toList()
+                        : [const DropdownMenuItem(child: Text('Loading...'))],
+                    value: _productsDropdownButtonSelectedItem,
+                    onChanged: (selectedItem) {
+                      if (selectedItem != null) {
+                        setState(() {
+                          _productsDropdownButtonSelectedItem = selectedItem;
+                        });
+                      }
+                    },
+                    decoration: const InputDecoration(
+                      labelText: 'Product',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => (value == null) ? 'A product must be specified' : null,
+                  );
+                },
+              ),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              ToggleButtons(
+                isSelected: _requestBodySelectedViews,
+                onPressed: (index) {
+                  setState(() {
+                    _requestBodySelectedViews[index] = true;
+                    _requestBodySelectedViews[(index - 1).abs()] = false;
+                  });
+                },
+                children: const <Widget>[Text('Edit'), Text('Preview')],
+              ),
+              Expanded(
+                child: _requestBodySelectedViews[0]
+                    ? TextFormField(
+                        maxLines: null,
+                        expands: true,
+                        controller: _requestBodyTextEditingController,
+                        decoration: const InputDecoration(
+                          labelText: 'Body',
+                          helperText: 'Can Use GitHub Flavored Markdown',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) => (value == null || value.isEmpty) ? 'Body must not be empty' : null,
+                      )
+                    : Card(
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(12),
+                          ),
+                        ),
+                        child: Markdown(
+                          extensionSet: md.ExtensionSet.gitHubWeb,
+                          data: _requestBodyTextEditingController.text,
+                          padding: const EdgeInsets.all(8.0),
+                          selectable: true,
+                        ),
+                      ),
+              ),
               Card(
                 elevation: 0,
                 shape: RoundedRectangleBorder(
@@ -666,15 +753,41 @@ class _RequestFormState extends State<RequestForm> {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  await widget.requestFirestoreRef.set(widget.request);
+                  if (_formKey.currentState!.validate()) {
+                    await widget.requestFirestoreRef.set(widget.request); // TODO: Things Have Changed Since Then
+                    // TODO: Notify Who Launched This That This Must Be Closed
+                  } else {
+                    if (_requestBodyTextEditingController.text.isEmpty) {
+                      setState(() {
+                        _requestBodySelectedViews[0] = true;
+                        _requestBodySelectedViews[0] = false;
+                      });
+                    }
+                  }
                 },
+                style: ElevatedButton.styleFrom(
+                  onPrimary: Theme.of(context).colorScheme.onPrimary,
+                  primary: Theme.of(context).colorScheme.primary,
+                ).copyWith(elevation: ButtonStyleButton.allOrNull(0.0)), // Source: 'material.ButtonStyle.1' Sample
                 child: const Text('Submit'),
+              ),
+              OutlinedButton(
+                onPressed: () {
+                  // TODO: Notify Who Launched This That This Must Be Dismissed
+                },
+                child: const Text('Close'),
               )
             ],
           ),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    requestBodyTextEditingController.dispose();
+    super.dispose();
   }
 }
 

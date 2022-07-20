@@ -1,1 +1,1 @@
-enum DeploymentStatus { idk }
+enum DeploymentStatus { pending, inProgress, completed }

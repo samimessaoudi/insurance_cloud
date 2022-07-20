@@ -50,6 +50,7 @@ dependencies:
   google_sign_in: ^5.4.0
   cloud_firestore_odm: ^1.0.0-dev.21
   json_annotation: ^4.6.0
+  flutter_markdown: ^0.6.10+3
 
 dev_dependencies:
   flutter_test:

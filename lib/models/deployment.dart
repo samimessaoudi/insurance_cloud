@@ -1,16 +1,20 @@
-import 'package:insurance_cloud/enums/deployment_status.dart';
-import 'package:insurance_cloud/enums/environment.dart';
-import 'package:insurance_cloud/models/platform_product.dart';
-import 'package:insurance_cloud/models/product.dart';
-
+import '../enums/deployment_status.dart';
+import '../enums/environment.dart';
+import '../enums/platform.dart';
 import '../firestore_serializable.dart';
-import 'environment_product.dart';
+import 'product.dart';
 import 'user.dart';
+
+part 'deployment.g.dart';
 
 @firestoreSerializable
 class Deployment {
   final User user;
-  final EnvironmentProduct environment;
-  final PlatformProduct platform;
+  final Product product;
   final DeploymentStatus status;
+  final int progress;
+  final Platform platform;
+  final Environment environment;
+  final String name;
+  final String logoUrl;
 }

@@ -1,18 +1,21 @@
-import 'package:insurance_cloud/models/developer.dart';
+import 'package:cloud_firestore_odm/annotation.dart';
 
+import '../enums/platform.dart';
 import '../firestore_serializable.dart';
-import 'platform_product.dart';
+import 'release_notes.dart';
 
 part 'product.g.dart';
 
 @firestoreSerializable
 class Product {
-  // Demo Eligibility Thing
+  // Demo Eligibility Thing According To Previous Product Deployments, Nothing To Add Here
+  // No Developer Entity Cuz One Dev Per Platform
+  final String id;
+  final String name;
   final String logoUrl;
-  final bool isPurchased;
-  final String label;
-  final String caption;
-  final List<PlatformProduct> platformVariants;
-  final Developer developer;
-  Product(this.isPurchased, this.label, this.caption, this.platformVariants, this.logoUrl);
+  final List<Platform> platforms;
+  final List<ReleaseNotes> releasesNotes;
 }
+
+@Collection<Product>('products')
+final productsRef = ProductCollectionReference();

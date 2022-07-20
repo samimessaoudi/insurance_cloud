@@ -121,7 +121,7 @@ abstract class UserDocumentReference
   Future<void> delete();
 
   Future<void> update({
-    String uid,
+    String id,
   });
 
   Future<void> set(User value);
@@ -166,10 +166,10 @@ class _$UserDocumentReference
   }
 
   Future<void> update({
-    Object? uid = _sentinel,
+    Object? id = _sentinel,
   }) async {
     final json = {
-      if (uid != _sentinel) "uid": uid as String,
+      if (id != _sentinel) "id": id as String,
     };
 
     return reference.update(json);
@@ -294,7 +294,7 @@ abstract class UserQuery implements QueryReference<UserQuerySnapshot> {
     List<String>? whereIn,
     List<String>? whereNotIn,
   });
-  UserQuery whereUid({
+  UserQuery whereId({
     String? isEqualTo,
     String? isNotEqualTo,
     String? isLessThan,
@@ -318,7 +318,7 @@ abstract class UserQuery implements QueryReference<UserQuerySnapshot> {
     UserDocumentSnapshot? startAfterDocument,
   });
 
-  UserQuery orderByUid({
+  UserQuery orderById({
     bool descending = false,
     String startAt,
     String startAfter,
@@ -496,7 +496,7 @@ class _$UserQuery extends QueryReference<UserQuerySnapshot>
     );
   }
 
-  UserQuery whereUid({
+  UserQuery whereId({
     String? isEqualTo,
     String? isNotEqualTo,
     String? isLessThan,
@@ -509,7 +509,7 @@ class _$UserQuery extends QueryReference<UserQuerySnapshot>
   }) {
     return _$UserQuery(
       reference.where(
-        _$UserFieldMap["uid"]!,
+        _$UserFieldMap["id"]!,
         isEqualTo: isEqualTo,
         isNotEqualTo: isNotEqualTo,
         isLessThan: isLessThan,
@@ -566,7 +566,7 @@ class _$UserQuery extends QueryReference<UserQuerySnapshot>
     return _$UserQuery(query, _collection);
   }
 
-  UserQuery orderByUid({
+  UserQuery orderById({
     bool descending = false,
     Object? startAt = _sentinel,
     Object? startAfter = _sentinel,
@@ -578,7 +578,7 @@ class _$UserQuery extends QueryReference<UserQuerySnapshot>
     UserDocumentSnapshot? startAfterDocument,
   }) {
     var query =
-        reference.orderBy(_$UserFieldMap["uid"]!, descending: descending);
+        reference.orderBy(_$UserFieldMap["id"]!, descending: descending);
 
     if (startAtDocument != null) {
       query = query.startAtDocument(startAtDocument.snapshot);

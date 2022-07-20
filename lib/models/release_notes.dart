@@ -1,10 +1,10 @@
 import '../firestore_serializable.dart';
 
+part 'release_notes.g.dart';
+
 @firestoreSerializable
 class ReleaseNotes {
-  // Per Platform
   final String version;
-  final DateTime date;
-  final String notes;
-  ReleaseNotes(this.version, this.date, this.notes);
+  final DateTime releaseDate;
+  final String releaseNotes;
 }

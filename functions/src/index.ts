@@ -38,22 +38,13 @@ const octokitApp = new App({
   }
 })
 
-octokitApp.webhooks.on("issues.opened", ({ octokit, payload }) => {
-  // ...  
-});
-
-// *: Apps Admin Would Have An Add App Button That Installs App On His Specified Repo And Returnes Tokens To Us
-
 expressApp.use(createNodeMiddleware(octokitApp));
 
 export const octokitAppFunction = functions.https.onRequest(expressApp);
 
-type Product = {
-  githubAppInstallationId: number
-  productionBranch: string,
-  stagingBranch: string
-}
+const ACTION_FILES_COMMIT_MSG_HEADLINE = 'commited action files';
 
+// *: Apps Admin Would Have An Add App Button That Installs App On His Specified Repo And Returnes Tokens To Us
 export const addApp = functions.https.onCall(async (data: Product, context) => {
   // TODO: Implement: Create Firebase Project
 
@@ -64,6 +55,7 @@ export const addApp = functions.https.onCall(async (data: Product, context) => {
         query get_product_template_files {
           repository {
             // TODO: Get Files Path Their Base64 Encoded Contents
+            // Repo Name: samimessaoudi/product_actions
           }
         }
       `,
@@ -81,19 +73,19 @@ export const addApp = functions.https.onCall(async (data: Product, context) => {
       }
     }>(
       `#graphql
-        mutation commit_action_files($additions: [FileAddition!]) {
+        mutation commit_action_files($expectedHeadOid: GitObjectID!, $repositoryNameWithOwner: String, $branchName: String, $headline: String!, $additions: [FileAddition!]) {
           createCommitOnBranch(
             input: {
+              expectedHeadOid: $expectedHeadOid
               branch: {
-                repositoryNameWithOwner: "",
-                branchName: ""
+                repositoryNameWithOwner: $repositoryNameWithOwner,
+                branchName: $branchName
               },
-              expectedHeadOid: "$expectedHeadOid"
+              message: {
+                headline: $headline
+              },
               fileChanges: {
                 additions: $additions
-              }
-              message: {
-                headline: ""
               }
             }
           ) {
@@ -106,7 +98,10 @@ export const addApp = functions.https.onCall(async (data: Product, context) => {
         }
       `,
       {
-        "expectedHeadOid": "",
+        "expectedHeadOid": "", // TODO: Make Random Or IDK
+        "repositoryNameWithOwner": "", // ...
+        "branchName": "", // ...
+        "headline": ACTION_FILES_COMMIT_MSG_HEADLINE,
         "additions": productTemplateFiles.map(file => (
           {
             path: file.path,
@@ -139,8 +134,97 @@ export const addApp = functions.https.onCall(async (data: Product, context) => {
   }
 });
 
-export const addRelease = functions.https.onCall(async (data, context) => {
+octokitApp.webhooks.on('release', ({id, name, payload}) => { // And Children Events
+  // ...
+});
 
+octokitApp.webhooks.on('workflow_job', ({id, name, payload}) => {
+  // ...
+});
+
+octokitApp.webhooks.on('repository', ({id, name, payload}) => { // And Children Events
+  // ...
+});
+
+octokitApp.webhooks.on('installation_repositories.added', ({id, name, payload}) => {
+  // ...
+});
+
+octokitApp.webhooks.on('installation_repositories.removed', ({id, name, payload}) => {
+  // TODO: Handle This
+});
+
+octokitApp.webhooks.on('github_app_authorization.revoked', ({id, name, payload}) => {
+  // TODO: Handle This
+});
+
+octokitApp.webhooks.on('deployment.created', ({id, name, payload}) => {
+  // ...
+});
+
+const ISSUE_TEMPLATE = ''; // TODO: ...
+
+export const saveIssue = functions.https.onCall(async (data: Issue, context) => {
+  // TODO: Get Repository Global Node ID
+  octokitApp.octokit.rest.repos........
+  if (data.id != null) {
+    return octokitApp.octokit.graphql<{
+      issue: {
+        id: String
+      }
+    }>(
+      `#graphql
+        mutation update_issue($id: ID!, $title: String, $body: String) {
+          updateIssue(
+            input: {
+              id: $id
+              title: $title,
+              body: $body
+            }
+          ) {
+            issue {
+              id
+            }
+          }
+        }
+      `,
+      {
+        "repositoryId": data.product,
+        "issueTemplate": ISSUE_TEMPLATE,
+        "title": data.title,
+        "body": data.body
+      }
+    );
+  }
+
+  return octokitApp.octokit.graphql<{
+    issue: {
+      id: String
+    }
+  }>(
+    `#graphql
+      mutation create_issue($repositoryId: ID!, $issueTemplate: String, $title: String!, $body: String) {
+        createIssue(
+          input: {
+            repositoryId: $repositoryId,
+            issueTemplate: $issueTemplate,
+            title: $title,
+            body: $body
+          }
+        ) {
+          issue {
+            id
+          }
+        }
+      }
+    `,
+    {
+      "repositoryId": "", // TODO: ...
+      "issueTemplate": ISSUE_TEMPLATE,
+      "title": data.title,
+      "body": data.body
+    }
+  );
 });
 ///////////////////////
 export const v2FnCallableHttp = functionsV2.https.onCall({
